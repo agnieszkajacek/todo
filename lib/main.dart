@@ -37,15 +37,21 @@ class _ToDoListState extends State<ToDoList> {
       itemCount: _todoItems.length,
       itemBuilder: (BuildContext context, int index) {
         return Container(
-          child:_buildTodoItem(_todoItems[index])
+          child: _buildTodoItem(_todoItems[index], index)
         );
       }
     );
   }
 
   // Build a single item
-  Widget _buildTodoItem(String title){
-    return ListTile(title: Text(title));
+  Widget _buildTodoItem(String title, int index){
+    return ListTile(
+      title: Text(title),
+      trailing: IconButton(
+        icon: Icon(Icons.delete),
+        onPressed: () => _confirmRemoveItem(index),
+      ),
+    );
   }
 
   // This will be called each time the + button is pressed
@@ -54,6 +60,37 @@ class _ToDoListState extends State<ToDoList> {
       _todoItems.add(title);
     });
     _textFieldController.clear();
+  }
+
+  // Remove item from array
+  void _removeItem(int index){
+    setState(() {
+      _todoItems.removeAt(index);
+    });
+  }
+
+  void _confirmRemoveItem (int index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Remove Task"),
+          actions: <Widget>[
+            FlatButton(
+              child: const Text("Remove"),
+              onPressed: () {
+                _removeItem(index);
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: const Text("Cancel"),
+              onPressed: () =>  Navigator.of(context).pop()
+            )
+          ],
+        );
+      }
+    );
   }
 
   // Popup dialog for creating a single item
