@@ -47,9 +47,12 @@ class _ToDoListState extends State<ToDoList> {
   Widget _buildTodoItem(String title, int index){
     return ListTile(
       title: Text(title),
-      trailing: IconButton(
-        icon: Icon(Icons.delete),
-        onPressed: () => _confirmRemoveItem(index),
+      trailing: Wrap(
+        spacing: 12, // space between two icons
+        children: <Widget>[
+          IconButton(icon: Icon(Icons.delete), onPressed: () => _confirmRemoveItem(index)), // icon-1
+          IconButton(icon: Icon(Icons.edit), onPressed: () => _updateItemDialog(context, index, title)), // icon-2
+        ],
       ),
     );
   }
@@ -69,6 +72,14 @@ class _ToDoListState extends State<ToDoList> {
     });
   }
 
+  // Update item in array
+  void _updateItem(int index, String title){
+    setState(() {
+      _todoItems[index] = title;
+    });
+  }
+
+  // Pop-up dialog to confirm removing item
   void _confirmRemoveItem (int index) {
     showDialog(
       context: context,
@@ -86,6 +97,40 @@ class _ToDoListState extends State<ToDoList> {
             FlatButton(
               child: const Text("Cancel"),
               onPressed: () =>  Navigator.of(context).pop()
+            )
+          ],
+        );
+      }
+    );
+  }
+
+  // Update Item dialog
+  Future<AlertDialog> _updateItemDialog(BuildContext context, int index, String title) async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        print("$title");
+        return AlertDialog(
+          title: Text("Update: $title"),
+          content: TextField(
+            controller: _textFieldController,
+            decoration: InputDecoration(hintText: "Enter new value here..."),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: const Text("Add"),
+              onPressed: () {
+                _updateItem(index, _textFieldController.text);
+                _textFieldController.clear();
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: const Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _textFieldController.clear();
+              },
             )
           ],
         );
