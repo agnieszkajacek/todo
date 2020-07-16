@@ -15,14 +15,14 @@ class ToDoList extends StatefulWidget {
 }
 
 class _ToDoListState extends State<ToDoList> {
-  final List<String> _todoList = <String>[];
+  final List<String> _todoItems = <String>[];
   final TextEditingController _textFieldController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("ToDo List")),
-      body: ListView(children: _buildItems()),
+      body: _buildTodoList(),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showDialog(context),
         tooltip: "Add Task",
@@ -32,13 +32,15 @@ class _ToDoListState extends State<ToDoList> {
   }
 
   // Get all items
-  List<Widget> _buildItems() {
-    final List<Widget> _allItems = <Widget>[];
-    for(String title in _todoList) {
-      _allItems.add(_buildTodoItem(title));
-    }
-
-    return _allItems;
+  Widget _buildTodoList() {
+    return ListView.builder(
+      itemCount: _todoItems.length,
+      itemBuilder: (BuildContext context, int index) {
+        return Container(
+          child:_buildTodoItem(_todoItems[index])
+        );
+      }
+    );
   }
 
   // Build a single item
@@ -49,7 +51,7 @@ class _ToDoListState extends State<ToDoList> {
   // This will be called each time the + button is pressed
   void _addItem(String title){
     setState(() {
-      _todoList.add(title);
+      _todoItems.add(title);
     });
     _textFieldController.clear();
   }
