@@ -59,10 +59,12 @@ class _ToDoListState extends State<ToDoList> {
 
   // This will be called each time the + button is pressed
   void _addItem(String task){
-    setState(() {
-      _todoItems.add(task);
-    });
-    _textFieldController.clear();
+    if(task.length > 0) {
+      setState(() {
+        _todoItems.add(task);
+      });
+      _textFieldController.clear();
+    }
   }
 
   // Remove item from array
