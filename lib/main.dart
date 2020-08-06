@@ -15,7 +15,7 @@ class ToDoList extends StatefulWidget {
 }
 
 class _ToDoListState extends State<ToDoList> {
-  final List<String> _todoItems = <String>[];
+  final List<String> _todoItems = [];
   final TextEditingController _textFieldController = TextEditingController();
 
   @override
@@ -44,23 +44,23 @@ class _ToDoListState extends State<ToDoList> {
   }
 
   // Build a single item
-  Widget _buildTodoItem(String title, int index){
+  Widget _buildTodoItem(String taskTitle, int index){
     return ListTile(
-      title: Text(title),
+      title: Text(taskTitle),
       trailing: Wrap(
         spacing: 12, // space between two icons
         children: <Widget>[
           IconButton(icon: Icon(Icons.delete), onPressed: () => _confirmRemoveItem(index)), // icon-1
-          IconButton(icon: Icon(Icons.edit), onPressed: () => _updateItemDialog(context, index, title)), // icon-2
+          IconButton(icon: Icon(Icons.edit), onPressed: () => _updateItemDialog(context, index, taskTitle)), // icon-2
         ],
       ),
     );
   }
 
   // This will be called each time the + button is pressed
-  void _addItem(String title){
+  void _addItem(String task){
     setState(() {
-      _todoItems.add(title);
+      _todoItems.add(task);
     });
     _textFieldController.clear();
   }
@@ -73,9 +73,9 @@ class _ToDoListState extends State<ToDoList> {
   }
 
   // Update item in array
-  void _updateItem(int index, String title){
+  void _updateItem(int index, String task){
     setState(() {
-      _todoItems[index] = title;
+      _todoItems[index] = task;
     });
   }
 
@@ -105,13 +105,13 @@ class _ToDoListState extends State<ToDoList> {
   }
 
   // Update Item dialog
-  Future<AlertDialog> _updateItemDialog(BuildContext context, int index, String title) async {
+  Future<AlertDialog> _updateItemDialog(BuildContext context, int index, String taskTitle) async {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
-        print("$title");
+        print("$taskTitle");
         return AlertDialog(
-          title: Text("Update: $title"),
+          title: Text("Update: $taskTitle"),
           content: TextField(
             controller: _textFieldController,
             decoration: InputDecoration(hintText: "Enter new value here..."),
