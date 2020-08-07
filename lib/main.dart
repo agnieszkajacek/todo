@@ -47,11 +47,11 @@ class _ToDoListState extends State<ToDoList> {
   Widget _buildTodoItem(String taskTitle, int index){
     return ListTile(
       title: Text(taskTitle),
+      onTap: () => _updateItemDialog(context, index, taskTitle),
       trailing: Wrap(
         spacing: 12, // space between two icons
         children: <Widget>[
-          IconButton(icon: Icon(Icons.delete), onPressed: () => _confirmRemoveItem(index)), // icon-1
-          IconButton(icon: Icon(Icons.edit), onPressed: () => _updateItemDialog(context, index, taskTitle)), // icon-2
+          IconButton(icon: Icon(Icons.delete), onPressed: () => _confirmRemoveItem(index)), // icon-1// icon-2
         ],
       ),
     );
