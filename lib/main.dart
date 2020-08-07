@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:todo/models/todo_item.dart';
 
 void main() => runApp(TodoApp());
 
@@ -15,8 +16,10 @@ class ToDoList extends StatefulWidget {
 }
 
 class _ToDoListState extends State<ToDoList> {
-  final List<String> _todoItems = [];
+  final List<TodoItem> _todoItems = [];
   final TextEditingController _textFieldController = TextEditingController();
+
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -28,30 +31,77 @@ class _ToDoListState extends State<ToDoList> {
         tooltip: "Add Task",
         child: Icon(Icons.add),
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.blue,
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.white,
+        onTap: (index) => {
+          setState(() {
+            _selectedIndex = index;
+            })
+        },
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.open_in_new),
+            title: Text('Unfinished'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.close),
+            title: Text('Finished'),
+          ),
+        ]
+      ),
     );
   }
 
   // Get all items
   Widget _buildTodoList() {
-    return ListView.builder(
-      itemCount: _todoItems.length,
-      itemBuilder: (BuildContext context, int index) {
-        return Container(
-          child: _buildTodoItem(_todoItems[index], index)
-        );
-      }
+    List<TodoItem> filteredItems = getFilteredItems();
+
+    return ReorderableListView(
+      header: Center(
+        child: Container(
+          padding: EdgeInsets.fromLTRB(20, 20, 20, 20),
+          child: Text(
+            _selectedIndex == 0 ? "List of unfinished tasks" : "List of finished tasks",
+            style: TextStyle(fontSize: 20),
+          ),
+
+        )
+      ),
+      children: [
+        for (var i = 0; i < filteredItems.length; i++)
+          _buildTodoItem(filteredItems[i], i)
+      ],
+      onReorder: _onReorder
     );
   }
 
+  // Filtered Items
+  List<TodoItem> getFilteredItems() {
+    return _todoItems.where((item) {
+      if (_selectedIndex == 0) {
+        return !item.isFinished;
+      } else {
+        return item.isFinished;
+      }
+    }).toList();
+  }
+
   // Build a single item
-  Widget _buildTodoItem(String taskTitle, int index){
+  Widget _buildTodoItem(TodoItem item, int index){
     return ListTile(
-      title: Text(taskTitle),
+      key: Key(item.body), // a unique identifier, required by ReorderableListView, which will be used later
+      title: Text(item.body),
+      onTap: () => _updateItemDialog(context, index, item),
       trailing: Wrap(
         spacing: 12, // space between two icons
         children: <Widget>[
-          IconButton(icon: Icon(Icons.delete), onPressed: () => _confirmRemoveItem(index)), // icon-1
-          IconButton(icon: Icon(Icons.edit), onPressed: () => _updateItemDialog(context, index, taskTitle)), // icon-2
+          IconButton(
+            icon: Icon(item.isFinished ? Icons.check_box : Icons.check_box_outline_blank),
+            onPressed: () => _promptToggleTodoItem(item),
+          ),
+          IconButton(icon: Icon(Icons.delete), onPressed: () => _confirmRemoveItem(index)),// icon-1
         ],
       ),
     );
@@ -61,10 +111,16 @@ class _ToDoListState extends State<ToDoList> {
   void _addItem(String task){
     if(task.length > 0) {
       setState(() {
-        _todoItems.add(task);
+        _todoItems.add(TodoItem(body: task, isFinished: false, itemId: _todoItems.length + 1)
+        );
       });
       _textFieldController.clear();
     }
+  }
+
+  // Check if task is finished
+  void _toggleTodoItem(TodoItem item) {
+    setState(() => item.isFinished = !item.isFinished);
   }
 
   // Remove item from array
@@ -77,12 +133,48 @@ class _ToDoListState extends State<ToDoList> {
   // Update item in array
   void _updateItem(int index, String task){
     setState(() {
-      _todoItems[index] = task;
+      _todoItems[index] = TodoItem(body: task);
+    });
+  }
+
+  // Show alert to confirm that task is done
+  void _promptToggleTodoItem(TodoItem item) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(item.isFinished ? 'Mark "${item.body}" as undone?' : 'Mark "${item.body}" as done?'),
+          actions: <Widget>[
+            FlatButton(
+              child: Text("Yes"),
+              onPressed: () {
+                _toggleTodoItem(item);
+                Navigator.of(context).pop();
+              }
+            ),
+            FlatButton(
+              child: Text("Cancel"),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+      }
+    );
+  }
+
+  // onReorder function
+  void _onReorder(int oldIndex, int newIndex) {
+    setState(() {
+      if (oldIndex < newIndex) {
+        newIndex -= 1;
+      }
+      var getReplacedWidget = _todoItems.removeAt(oldIndex);
+      _todoItems.insert(newIndex, getReplacedWidget);
     });
   }
 
   // Pop-up dialog to confirm removing item
-  void _confirmRemoveItem (int index) {
+  void _confirmRemoveItem(int index) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -107,13 +199,12 @@ class _ToDoListState extends State<ToDoList> {
   }
 
   // Update Item dialog
-  Future<AlertDialog> _updateItemDialog(BuildContext context, int index, String taskTitle) async {
+  Future<AlertDialog> _updateItemDialog(BuildContext context, int index, TodoItem item) async {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
-        print("$taskTitle");
         return AlertDialog(
-          title: Text("Update: $taskTitle"),
+          title: Text("Update: ${item.body}"),
           content: TextField(
             controller: _textFieldController,
             decoration: InputDecoration(hintText: "Enter new value here..."),
