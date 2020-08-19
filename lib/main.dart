@@ -93,7 +93,7 @@ class _ToDoListState extends State<ToDoList> {
     return ListTile(
       key: Key(item.body), // a unique identifier, required by ReorderableListView, which will be used later
       title: Text(item.body),
-      onTap: () => _updateItemDialog(context, index, item),
+      onTap: !item.isFinished ? () { _updateItemDialog(context, index, item); }  : null,
       trailing: Wrap(
         spacing: 12, // space between two icons
         children: <Widget>[
